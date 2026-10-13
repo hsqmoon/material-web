@@ -1,0 +1,126 @@
+//
+// Copyright 2026 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// b01 fork 补齐：官方没有分页器组件，按 M3 规范实现（页码 + 每页条数 + 跳页 + 刷新）。
+
+@mixin styles() {
+  :host {
+    --md-pager-gap: 8px 16px;
+    --md-pager-min-height: 52px;
+    --md-pager-text-color: var(--md-sys-color-on-surface-variant, #49454f);
+    --md-pager-total-color: var(--md-sys-color-on-surface, #1d1b20);
+    --md-pager-current-container-color: var(--md-sys-color-primary, #6750a4);
+    --md-pager-current-label-color: var(--md-sys-color-on-primary, #ffffff);
+    --md-pager-page-size-width: 128px;
+    --md-pager-page-number-width: 52px;
+    --md-pager-control-height: 32px;
+
+    display: block;
+  }
+
+  :host([hidden]) {
+    display: none;
+  }
+
+  .pager {
+    min-height: var(--md-pager-min-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--md-pager-gap);
+    color: var(--md-pager-text-color);
+    font-size: 13px;
+  }
+
+  .total {
+    color: var(--md-pager-total-color);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .size {
+    width: var(--md-pager-page-size-width);
+    --md-outlined-select-text-field-container-height: var(--md-pager-control-height);
+  }
+
+  .numbers {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .slot {
+    flex: 0 0 var(--md-pager-page-number-width);
+    width: var(--md-pager-page-number-width);
+    height: var(--md-pager-control-height);
+    display: grid;
+    place-items: center;
+  }
+
+  .page-number {
+    width: var(--md-pager-page-number-width);
+    min-width: var(--md-pager-page-number-width);
+    height: var(--md-pager-control-height);
+    padding: 0;
+    border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
+    border-radius: var(--md-sys-shape-corner-full, 9999px);
+    background: var(--md-sys-color-surface-container, #f3edf7);
+    color: var(--md-sys-color-on-surface, #1d1b20);
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+    transition: background var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-standard);
+  }
+
+  .page-number:hover:not(:disabled) {
+    background: var(--md-sys-color-surface-container-high, #ece6f0);
+  }
+
+  .page-number[aria-current="page"] {
+    border-color: transparent;
+    background: var(--md-pager-current-container-color);
+    color: var(--md-pager-current-label-color);
+    font-weight: 600;
+  }
+
+  .page-number:disabled {
+    opacity: .6;
+    cursor: wait;
+  }
+
+  .arrow {
+    --md-outlined-button-container-height: var(--md-pager-control-height);
+    --md-outlined-button-leading-space: 8px;
+    --md-outlined-button-trailing-space: 8px;
+  }
+
+  .ellipsis {
+    color: var(--md-pager-text-color);
+  }
+
+  .jump {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  .jump-field {
+    width: 48px;
+    --md-outlined-text-field-container-height: var(--md-pager-control-height);
+  }
+
+  .refresh {
+    --md-outlined-button-container-height: var(--md-pager-control-height);
+  }
+}
