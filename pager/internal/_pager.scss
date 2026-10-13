@@ -13,15 +13,44 @@
     --md-pager-total-color: var(--md-sys-color-on-surface, #1d1b20);
     --md-pager-current-container-color: var(--md-sys-color-primary, #6750a4);
     --md-pager-current-label-color: var(--md-sys-color-on-primary, #ffffff);
-    --md-pager-page-size-width: 128px;
+    // 官方 md-select 自身带 210px 最小宽度，这里取同一数值；要更窄需消费方放开 select 的最小宽度。
+    --md-pager-page-size-width: 210px;
     --md-pager-page-number-width: 52px;
     --md-pager-control-height: 32px;
 
     display: block;
+    // 页码位按宿主自身宽度收放（见下方容器查询），不依赖脚本测量，窄屏也不会撑出横向滚动。
+    container-type: inline-size;
   }
 
   :host([hidden]) {
     display: none;
+  }
+
+  // 逐级收起页码位：先收两端"端点 + 省略号"，再收相邻页，最后只留当前页。
+  // 当前页固定居中（第 5 位），因此收放之后当前页始终可见。
+
+  @container (max-width: 699px) {
+    .slot[data-slot="0"],
+    .slot[data-slot="1"],
+    .slot[data-slot="7"],
+    .slot[data-slot="8"] {
+      display: none;
+    }
+  }
+
+  @container (max-width: 529px) {
+    .slot[data-slot="2"],
+    .slot[data-slot="6"] {
+      display: none;
+    }
+  }
+
+  @container (max-width: 349px) {
+    .slot[data-slot="3"],
+    .slot[data-slot="5"] {
+      display: none;
+    }
   }
 
   .pager {
@@ -56,6 +85,8 @@
   .numbers {
     display: flex;
     align-items: center;
+    // 容器查询不可用的环境里宁可换行，也不把分页条撑出横向滚动。
+    flex-wrap: wrap;
     gap: 4px;
   }
 

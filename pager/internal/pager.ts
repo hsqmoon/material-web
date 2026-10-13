@@ -74,7 +74,12 @@ export class Pager extends LitElement {
     return Math.max(1, Math.ceil(this.total / Math.max(1, this.pageSize)));
   }
 
-  /** pageSlots 固定数量的页码位：当前页居中，端点常驻，其余折叠为省略号。 */
+  /**
+   * pageSlots 固定数量的页码位：当前页居中，端点常驻，其余折叠为省略号。
+   *
+   * 数量固定（含空占位）是为了翻页时按钮不左右跳动；窄屏收起最外侧的位由样式按宿主
+   * 宽度用容器查询完成（见 _pager.scss），因此这里始终按满档计算。
+   */
   private get pageSlots(): PageSlot[] {
     const count = this.pageCount;
     const neighbors: PageSlot[] = [-2, -1, 0, 1, 2].map(offset => {
@@ -128,7 +133,7 @@ export class Pager extends LitElement {
         <nav class="numbers" aria-label="页码">
           <md-outlined-button class="arrow" aria-label="上一页" title="上一页" ?disabled=${this.page <= 1 || this.loadingMore}
             @click=${() => this.goTo(this.page - 1)}>‹</md-outlined-button>
-          ${this.pageSlots.map(slot => html`<span class="slot">
+          ${this.pageSlots.map((slot, index) => html`<span class="slot" data-slot=${index}>
             ${slot.value !== undefined
               ? html`<button class="page-number" aria-label="第 ${slot.value} 页"
                   aria-current=${slot.value === this.page ? 'page' : nothing} ?disabled=${this.loadingMore}
