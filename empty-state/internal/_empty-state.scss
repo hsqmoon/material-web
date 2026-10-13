@@ -1,0 +1,65 @@
+//
+// Copyright 2026 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// b01 fork 补齐：官方没有空态组件，按 M3 规范实现（图标 + 标题 + 说明 + 可选动作）。
+
+@mixin styles() {
+  :host {
+    --md-empty-state-icon-color: var(--md-sys-color-on-surface-variant, #49454f);
+    --md-empty-state-headline-color: var(--md-sys-color-on-surface, #1d1b20);
+    --md-empty-state-supporting-text-color: var(--md-sys-color-on-surface-variant, #49454f);
+    --md-empty-state-headline-font: var(--md-sys-typescale-title-medium-font, Roboto);
+    --md-empty-state-headline-size: var(--md-sys-typescale-title-medium-size, 1rem);
+    --md-empty-state-headline-line-height: var(--md-sys-typescale-title-medium-line-height, 1.5rem);
+    --md-empty-state-supporting-text-font: var(--md-sys-typescale-body-medium-font, Roboto);
+    --md-empty-state-supporting-text-size: var(--md-sys-typescale-body-medium-size, 0.875rem);
+    --md-empty-state-supporting-text-line-height: var(--md-sys-typescale-body-medium-line-height, 1.25rem);
+    --md-empty-state-icon-size: 48px;
+    --md-empty-state-container-padding: 32px 24px;
+
+    display: block;
+    box-sizing: border-box;
+  }
+
+  .surface {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: var(--md-empty-state-container-padding);
+    text-align: center;
+  }
+
+  .icon {
+    color: var(--md-empty-state-icon-color);
+    width: var(--md-empty-state-icon-size);
+    height: var(--md-empty-state-icon-size);
+  }
+
+  .headline {
+    margin: 0;
+    color: var(--md-empty-state-headline-color);
+    font-family: var(--md-empty-state-headline-font);
+    font-size: var(--md-empty-state-headline-size);
+    line-height: var(--md-empty-state-headline-line-height);
+    font-weight: 500;
+  }
+
+  .supporting-text {
+    margin: 0;
+    max-width: 42ch;
+    color: var(--md-empty-state-supporting-text-color);
+    font-family: var(--md-empty-state-supporting-text-font);
+    font-size: var(--md-empty-state-supporting-text-size);
+    line-height: var(--md-empty-state-supporting-text-line-height);
+  }
+
+  .actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
