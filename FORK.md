@@ -33,7 +33,9 @@ npm run build
 消费方**不**直接依赖源码，而是用各自仓库里的 `deployment/sync-ui.sh` 把构建产物（`*.js` / `*.d.ts` /
 `custom-elements.json` / `LICENSE` / `README.md` / `package.json`，不含 scss/map）同步成内嵌快照：
 
-- `debug_web`：`deployment/sync-ui.sh` → `web/vendor/material-web`，`package.json` 以 `file:vendor/material-web` 消费；
+- `debug_web`：`deployment/sync-ui.sh` → `web/vendor/material-web`；消费端用 Vite / tsconfig 别名把 `@material/web/*`
+  指向该目录，`lit` / `@lit/context` / `tslib` / `safevalues` 由消费端显式声明为依赖。
+  （不用 `file:` 依赖：npm 会把链接包的 devDependencies 一并安装，并在产物目录里再建 node_modules。）
   Docker 构建只拷贝该产物，因此部署镜像不依赖私有远端与上游工具链。
 
 新增/调整组件后：在本仓库提交 → 在消费方跑同步脚本 → 提交消费方的快照差异。
