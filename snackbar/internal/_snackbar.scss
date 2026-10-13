@@ -1,0 +1,70 @@
+//
+// Copyright 2026 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// b01 fork 补齐：官方至今没有 snackbar 组件，这里按 M3 规范实现。
+// 样式一律走组件令牌，默认值取官方系统角色；消费方用同名自定义属性覆盖即可换肤。
+
+@mixin styles() {
+  :host {
+    --md-snackbar-container-color: var(--md-sys-color-inverse-surface, #322f35);
+    --md-snackbar-label-text-color: var(--md-sys-color-inverse-on-surface, #f5eff7);
+    --md-snackbar-container-shape: var(--md-sys-shape-corner-extra-small, 4px);
+    --md-snackbar-container-min-height: 48px;
+    --md-snackbar-container-padding-block: 12px;
+    --md-snackbar-container-padding-inline: 16px;
+    --md-snackbar-label-text-font: var(--md-sys-typescale-body-medium-font, Roboto);
+    --md-snackbar-label-text-size: var(--md-sys-typescale-body-medium-size, 0.875rem);
+    --md-snackbar-label-text-line-height: var(--md-sys-typescale-body-medium-line-height, 1.25rem);
+    --md-snackbar-label-text-tracking: var(--md-sys-typescale-body-medium-tracking, 0.0178571429em);
+    --md-snackbar-label-text-weight: var(--md-sys-typescale-body-medium-weight, 400);
+    --md-snackbar-container-elevation: 0 4px 8px 3px rgb(0 0 0 / 15%), 0 1px 3px rgb(0 0 0 / 30%);
+
+    display: none;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  // 打开状态由宿主属性表达：组件本身不负责摆放位置，定位交给消费方。
+  :host([open]) {
+    display: inline-block;
+  }
+
+  .surface {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: var(--md-snackbar-container-min-height);
+    padding: var(--md-snackbar-container-padding-block) var(--md-snackbar-container-padding-inline);
+    border-radius: var(--md-snackbar-container-shape);
+    background: var(--md-snackbar-container-color);
+    box-shadow: var(--md-snackbar-container-elevation);
+    color: var(--md-snackbar-label-text-color);
+  }
+
+  .label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-family: var(--md-snackbar-label-text-font);
+    font-size: var(--md-snackbar-label-text-size);
+    line-height: var(--md-snackbar-label-text-line-height);
+    letter-spacing: var(--md-snackbar-label-text-tracking);
+    font-weight: var(--md-snackbar-label-text-weight);
+  }
+
+  .action {
+    flex: none;
+  }
+
+  // 动作按钮在反色表面上要跟随标签色，避免用默认主色（对比度由官方 on-inverse-surface 保证）。
+  .action ::slotted(*) {
+    --md-text-button-label-text-color: var(--md-snackbar-label-text-color);
+    --md-text-button-hover-label-text-color: var(--md-snackbar-label-text-color);
+    --md-text-button-focus-label-text-color: var(--md-snackbar-label-text-color);
+    --md-text-button-pressed-label-text-color: var(--md-snackbar-label-text-color);
+  }
+}
