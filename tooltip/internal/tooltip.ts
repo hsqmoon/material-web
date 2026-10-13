@@ -43,6 +43,14 @@ export class Tooltip extends LitElement {
     this.unbindAnchor();
   }
 
+  /**
+   * 锚点由消费方在元素创建后设置（框架可能在连接之后才赋属性），
+   * 因此属性变化时要重新绑定，不能只在 connectedCallback 里绑一次。
+   */
+  protected override willUpdate(changed: Map<string, unknown>): void {
+    if (changed.has('anchor')) this.bindAnchor();
+  }
+
   /** bindAnchor 绑定锚点的悬停/聚焦事件（id 形式在连接后再解析）。 */
   private bindAnchor(): void {
     this.unbindAnchor();
