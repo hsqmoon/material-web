@@ -1,0 +1,112 @@
+//
+// Copyright 2026 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// b01 fork 补齐：官方至今没有数据表容器组件，这里按 M3 规范实现。
+//
+// 为什么是轻 DOM：数据表样式必须作用到消费方插槽表格的**后代**（thead/td），
+// 而 ::slotted() 只能匹配插槽的直接子节点，阴影 DOM 做不到。因此组件不建影子根，
+// 样式表注入元素内部，全部选择器以 md-data-table 前缀限定，只命中本组件的实例。
+// 消费方自己的类选择器特异性更高，需要时可以按需覆盖。
+//
+// 样式一律走组件令牌，默认值取官方系统角色；消费方用同名自定义属性覆盖即可换肤。
+
+@mixin styles() {
+  md-data-table {
+    --md-data-table-container-color: var(--md-sys-color-surface-container-low, #f7f2fa);
+    --md-data-table-container-shape: var(--md-sys-shape-corner-large, 16px);
+    --md-data-table-divider-color: var(--md-sys-color-outline-variant, #cac4d0);
+    --md-data-table-header-color: var(--md-sys-color-surface-container, #f3edf7);
+    --md-data-table-header-text-color: var(--md-sys-color-on-surface-variant, #49454f);
+    --md-data-table-row-hover-color: var(--md-sys-color-surface-container, #f3edf7);
+    --md-data-table-pin-color: var(--md-data-table-container-color);
+    --md-data-table-pin-shadow-color: rgb(0 0 0 / 55%);
+    --md-data-table-cell-padding-block: 14px;
+    --md-data-table-cell-padding-inline: 12px;
+    --md-data-table-font-size: 0.875rem;
+
+    display: block;
+    box-sizing: border-box;
+    // 默认横向滚动：宽表在自己的容器里滚，不把页面撑出横向滚动条。
+    // 需要"表头相对页面吸顶"时（表格按设计不超宽），消费方把 overflow 置为 visible。
+    overflow-x: auto;
+    border-radius: var(--md-data-table-container-shape);
+    background: var(--md-data-table-container-color);
+  }
+
+  md-data-table > table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--md-data-table-font-size);
+  }
+
+  // M3 数据表：只留横向分隔线，层次交给表头浅色带与行的悬停状态层。
+  md-data-table > table th,
+  md-data-table > table td {
+    padding: var(--md-data-table-cell-padding-block) var(--md-data-table-cell-padding-inline);
+    border-bottom: 1px solid var(--md-data-table-divider-color);
+    text-align: left;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+  }
+
+  md-data-table > table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--md-data-table-header-color);
+    color: var(--md-data-table-header-text-color);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+
+  md-data-table > table tbody tr {
+    transition: background var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
+  }
+
+  md-data-table > table tbody tr:hover > td {
+    background: var(--md-data-table-row-hover-color);
+  }
+
+  // 冻结列：消费方在 th/td 上标 data-pin="left|right" 的列才吸附在滚动边界。
+  md-data-table > table [data-pin="left"] {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: var(--md-data-table-pin-color);
+  }
+
+  md-data-table > table thead [data-pin="left"] {
+    z-index: 5;
+    background: var(--md-data-table-header-color);
+  }
+
+  md-data-table > table [data-pin="right"] {
+    position: sticky;
+    right: 0;
+    z-index: 4;
+    background: var(--md-data-table-pin-color);
+  }
+
+  md-data-table > table thead [data-pin="right"] {
+    z-index: 5;
+    background: var(--md-data-table-header-color);
+  }
+
+  // 冻结列悬停时跟着行一起变色，否则悬停状态在冻结列上断开。
+  md-data-table > table tbody tr:hover > [data-pin] {
+    background: var(--md-data-table-row-hover-color);
+  }
+
+  // 冻结列只有真的滚起来才是"浮"起来的：滚动前不画分隔阴影。
+  md-data-table[pinned-left] > table [data-pin="left"] {
+    box-shadow: 6px 0 10px -8px var(--md-data-table-pin-shadow-color);
+  }
+
+  md-data-table[pinned-right] > table [data-pin="right"] {
+    box-shadow: -6px 0 10px -8px var(--md-data-table-pin-shadow-color);
+  }
+}

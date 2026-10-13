@@ -62,11 +62,19 @@ npm run build
 
 ## 官方缺失、由本仓库补齐的部分（按 M3 规范实现）
 
-上游至今没有数据表格、分页器、tooltip、日期选择器、上传字段、空态等，本仓库按 M3 规范补齐，
-放在与上游一致的目录结构下（顶层目录 + `internal/`），并复用官方 token、`ripple`、`focus`、`elevation`：
+上游至今没有数据表格、分页器、tooltip、空态、snackbar 等，本仓库按 M3 规范补齐，
+放在与上游一致的目录结构下（顶层目录 + `internal/`），并复用官方 token 与系统角色。
+样式一律走 `--md-<组件>-*` 组件令牌，默认值取官方系统角色，消费方覆盖令牌即可换肤。
 
-- 数据表格（含冻结列、列宽自适应、行选择、列设置、排序）——本项目最核心的补齐项
-- 分页器、tooltip、日期字段、文件上传字段、空态
+| 组件 | 标签 | 职责边界 |
+| --- | --- | --- |
+| 数据表容器 | `md-data-table` | 容器外观（表面、圆角、分隔线、表头带、行悬停状态层）、冻结列吸附与滚动状态标记（`data-pin="left\|right"` → 自身反映 `scrollable` / `pinned-left` / `pinned-right`）。列定义、排序、选择、分页仍归消费方。**轻 DOM**：样式要作用到插槽表格的后代，`::slotted()` 做不到，故以 `md-data-table` 前缀选择器注入。 |
+| 分页器 | `md-pager` | 页码 / 每页条数 / 总数 / 跳转 / 刷新；事件 `page-change`、`size-mode-change`、`refresh`。 |
+| 空态 | `md-empty-state` | 图标 + 标题 + 说明 + 动作插槽，`role="status"`。 |
+| 提示条 | `md-snackbar` | 一条短时提示的外观与无障碍语义（`role=status/alert`、关闭按钮）；摆放位置与生命周期归消费方。 |
+| 浮层提示 | `md-tooltip` | plain tooltip；锚点属性用 `anchor`（`for` 是 HTML 保留名，属性落不到元素上）。 |
+
+编辑网格（可增删行的表单式表格）、对比矩阵一类的表格**不是**数据表，其外观仍由消费方掌握，不并入 `md-data-table`。
 
 ## 主题
 
