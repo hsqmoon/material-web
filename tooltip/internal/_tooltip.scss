@@ -1,0 +1,44 @@
+//
+// Copyright 2026 Google LLC
+// SPDX-License-Identifier: Apache-2.0
+//
+
+// b01 fork 补齐：官方没有 tooltip 组件，按 M3 规范实现（plain tooltip：单行文本 + 反色表面）。
+
+@mixin styles() {
+  :host {
+    --md-tooltip-container-color: var(--md-sys-color-inverse-surface, #322f35);
+    --md-tooltip-label-text-color: var(--md-sys-color-inverse-on-surface, #f5eff7);
+    --md-tooltip-container-shape: var(--md-sys-shape-corner-extra-small, 4px);
+    --md-tooltip-container-padding-block: 4px;
+    --md-tooltip-container-padding-inline: 8px;
+    --md-tooltip-label-text-font: var(--md-sys-typescale-body-small-font, Roboto);
+    --md-tooltip-label-text-size: var(--md-sys-typescale-body-small-size, 0.75rem);
+    --md-tooltip-label-text-line-height: var(--md-sys-typescale-body-small-line-height, 1rem);
+    --md-tooltip-container-elevation: 0 1px 2px rgb(0 0 0 / 30%), 0 2px 6px 2px rgb(0 0 0 / 15%);
+
+    position: fixed;
+    z-index: 70;
+    pointer-events: none;
+    display: none;
+    max-width: 240px;
+    box-sizing: border-box;
+  }
+
+  // 只在 hover/focus 打开时显示；位置由组件脚本按锚点计算。
+  :host([open]) {
+    display: block;
+  }
+
+  .surface {
+    padding: var(--md-tooltip-container-padding-block) var(--md-tooltip-container-padding-inline);
+    border-radius: var(--md-tooltip-container-shape);
+    background: var(--md-tooltip-container-color);
+    box-shadow: var(--md-tooltip-container-elevation);
+    color: var(--md-tooltip-label-text-color);
+    font-family: var(--md-tooltip-label-text-font);
+    font-size: var(--md-tooltip-label-text-size);
+    line-height: var(--md-tooltip-label-text-line-height);
+    overflow-wrap: anywhere;
+  }
+}
