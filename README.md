@@ -1,3 +1,6 @@
+> **本仓库是 fork。** 这是 b01 产品线长期维护的 UI 基座（Google Material 3 Web Components 的 fork）：
+> 关系、基线、消费方式与新增组件见 [FORK.md](./FORK.md)。上游原说明如下。
+
 # Material Web
 
 <img src="./docs/images/material-web.gif"
