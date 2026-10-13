@@ -12,7 +12,7 @@ import {styles} from './tooltip-styles.cssresult.js';
 /**
  * b01 fork 补齐：官方没有 tooltip 组件，这里按 M3 规范实现 plain tooltip。
  *
- * 用法：把锚点元素交给 `for`（元素引用或 id），组件在锚点 hover/focus 时自动显示，
+ * 用法：把锚点元素交给 `anchor`（元素引用或 id），组件在锚点 hover/focus 时自动显示，
  * 并跟随锚点位置（优先上方，空间不足时翻到下方）。
  *
  * @fires opened 提示显示后派发。
@@ -21,8 +21,8 @@ import {styles} from './tooltip-styles.cssresult.js';
 export class Tooltip extends LitElement {
   static override styles: CSSResultOrNative[] = [styles];
 
-  /** 锚点元素：元素引用或 id 字符串。 */
-  @property() for: HTMLElement | string | null = null;
+  /** 锚点元素：元素引用或 id 字符串（与 md-menu 的 anchor 同名，避免 HTML 保留属性名冲突）。 */
+  @property() anchor: HTMLElement | string | null = null;
 
   /** 提示文案。 */
   @property() text = '';
@@ -46,9 +46,9 @@ export class Tooltip extends LitElement {
   /** bindAnchor 绑定锚点的悬停/聚焦事件（id 形式在连接后再解析）。 */
   private bindAnchor(): void {
     this.unbindAnchor();
-    const anchor = typeof this.for === 'string'
-      ? (this.getRootNode() as Document | ShadowRoot).getElementById(this.for)
-      : this.for;
+    const anchor = typeof this.anchor === 'string'
+      ? (this.getRootNode() as Document | ShadowRoot).getElementById(this.anchor)
+      : this.anchor;
     if (!(anchor instanceof HTMLElement)) return;
     this.anchorElement = anchor;
     anchor.addEventListener('mouseenter', this.onEnter);
@@ -77,10 +77,12 @@ export class Tooltip extends LitElement {
   };
 
   /** show 显示提示并定位到锚点上方（空间不足则翻到下方）。 */
-  show(): void {
+  async show(): Promise<void> {
     const anchor = this.anchorElement;
     if (!anchor || !this.text) return;
     this.setAttribute('open', '');
+    // 等一帧再测量：display 刚从 none 切过来，同帧量到的尺寸还是 0。
+    await this.updateComplete;
     const rect = anchor.getBoundingClientRect();
     const own = this.getBoundingClientRect();
     const above = rect.top - own.height - 4;
