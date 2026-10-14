@@ -79,6 +79,8 @@
 
   .size {
     width: var(--md-pager-page-size-width);
+    // 官方 md-select 宿主自带 210px 最小宽度，会把消费方设的窄宽度卡住；这里放开，宽度只由令牌决定。
+    min-width: 0;
     // 官方字段的高度由上下留白 + 内容行高决定，没有 container-height 令牌；
     // 用真实令牌把每页条数下拉压到与页码/箭头同高（--md-pager-control-height）。
     --md-outlined-field-top-space: 4px;
@@ -147,6 +149,15 @@
     align-items: center;
     gap: 5px;
     white-space: nowrap;
+  }
+
+  // 分页条内容（每页条数 + 页码 + 跳页 + 刷新）在 1100px 以下会超出容器宽度折成两行
+  // （OTA 右栏、弹窗里的引用列表都会遇到）；跳页是其中最不必要的一段，先收它。
+
+  @container (max-width: 1099px) {
+    .jump {
+      display: none;
+    }
   }
 
   .jump-field {

@@ -185,7 +185,11 @@
     line-height: map.get($tokens, 'supporting-text-line-height');
     flex: 1;
     font-weight: map.get($tokens, 'supporting-text-weight');
-    height: min-content; // Needed for Safari
+    // 官方为 Safari 写死 height: min-content，长内容会把内容盒撑到内容高度、
+    // 弹窗里就永远不出现滚动条（日志正文这类长内容会被直接裁掉）；改成弹性限高，
+    // 内容区高度由容器决定，滚动交给内容自己的滚动容器（消费方已有滚动区时不会出现双滚动条）。
+    height: auto;
+    min-height: 0;
     position: relative;
   }
 
