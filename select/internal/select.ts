@@ -277,10 +277,15 @@ export abstract class Select extends selectBaseClass {
   /**
    * Selects an option given the value of the option, and updates MdSelect's
    * value.
+   *
+   * 值按原生 select 的字符串语义归一后再匹配：调用方常把数字/布尔直接绑给
+   * `value`（如 `:value="job.enabled"`），而选项 value 恒为字符串，严格比较
+   * 会匹配失败、下拉显示为空。
    */
   select(value: string) {
+    const normalized = value == null ? '' : String(value);
     const optionToSelect = this.options.find(
-      (option) => option.value === value,
+      (option) => option.value === normalized,
     );
     if (optionToSelect) {
       this.selectItem(optionToSelect);
@@ -789,7 +794,8 @@ export abstract class Select extends selectBaseClass {
    */
   private initUserSelection() {
     // User has set `.value` directly, but internals have not yet booted up.
-    if (this.lastUserSetValue && !this.lastSelectedOptionRecords.length) {
+    // 数字 0 是合法选项值（如"停用/关闭"），不能按 falsy 丢弃。
+    if (this.lastUserSetValue !== null && !this.lastSelectedOptionRecords.length) {
       this.select(this.lastUserSetValue);
 
       // User has set `.selectedIndex` directly, but internals have not yet
