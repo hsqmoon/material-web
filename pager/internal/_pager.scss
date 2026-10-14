@@ -79,7 +79,10 @@
 
   .size {
     width: var(--md-pager-page-size-width);
-    --md-outlined-select-text-field-container-height: var(--md-pager-control-height);
+    // 官方字段的高度由上下留白 + 内容行高决定，没有 container-height 令牌；
+    // 用真实令牌把每页条数下拉压到与页码/箭头同高（--md-pager-control-height）。
+    --md-outlined-field-top-space: 4px;
+    --md-outlined-field-bottom-space: 4px;
   }
 
   .numbers {
@@ -148,7 +151,9 @@
 
   .jump-field {
     width: 48px;
-    --md-outlined-text-field-container-height: var(--md-pager-control-height);
+    // 同上：跳页输入与分页器其余控件同高，避免比旁边的"跳转"按钮大一截。
+    --md-outlined-field-top-space: 4px;
+    --md-outlined-field-bottom-space: 4px;
   }
 
   .refresh {
