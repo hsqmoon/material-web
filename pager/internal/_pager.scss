@@ -103,6 +103,11 @@
     place-items: center;
   }
 
+  // 页数很少时空位不占宽度：否则分页条上会出现几段 40px 的空档（窄容器里尤其明显）。
+  .slot[data-empty] {
+    display: none;
+  }
+
   .page-number {
     width: var(--md-pager-page-number-width);
     min-width: var(--md-pager-page-number-width);

@@ -133,7 +133,8 @@ export class Pager extends LitElement {
         <nav class="numbers" aria-label="页码">
           <md-outlined-button class="arrow" aria-label="上一页" title="上一页" ?disabled=${this.page <= 1 || this.loadingMore}
             @click=${() => this.goTo(this.page - 1)}>‹</md-outlined-button>
-          ${this.pageSlots.map((slot, index) => html`<span class="slot" data-slot=${index}>
+          ${this.pageSlots.map((slot, index) => html`<span class="slot" data-slot=${index}
+            ?data-empty=${slot.value === undefined && !slot.ellipsis}>
             ${slot.value !== undefined
               ? html`<button class="page-number" aria-label="第 ${slot.value} 页"
                   aria-current=${slot.value === this.page ? 'page' : nothing} ?disabled=${this.loadingMore}
