@@ -289,7 +289,6 @@ export class Dialog extends dialogBaseClass {
 
     const {ariaLabel} = this as ARIAMixinStrict;
     return html`
-      <div class="scrim"></div>
       <dialog
         class=${classMap(classes)}
         aria-label=${ariaLabel || nothing}
@@ -300,6 +299,9 @@ export class Dialog extends dialogBaseClass {
         @close=${this.handleClose}
         @keydown=${this.handleKeydown}
         .returnValue=${this.returnValue || nothing}>
+        <!-- 遮罩必须在 <dialog> 内部：showModal() 只把 dialog 提升到顶部图层，
+             放在外面的遮罩留在普通层，会被带 z-index 的吸顶顶栏/侧栏盖住。 -->
+        <div class="scrim"></div>
         ${showFocusTrap ? focusTrap : nothing}
         <div class="container" @click=${this.handleContentClick}>
           <div class="headline">

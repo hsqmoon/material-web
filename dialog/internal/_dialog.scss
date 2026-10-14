@@ -141,6 +141,8 @@
     border-radius: inherit;
     display: flex;
     flex-direction: column;
+    // 遮罩现在与容器同在 <dialog> 内：容器要显式压在其上。
+    z-index: 2;
     // Safari won't show content with "flex: 1", but container needs to grow if
     // height is set on the dialog, so use flex-grow instead.
     flex-grow: 1;
