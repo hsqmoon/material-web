@@ -33,6 +33,8 @@
     overflow-x: auto;
     border-radius: var(--md-data-table-container-shape);
     background: var(--md-data-table-container-color);
+    // 表格四周边框：只留横向分隔线时整块表在页面上"没有边界"，加一圈外框把它收进来。
+    border: 1px solid var(--md-data-table-divider-color);
   }
 
   md-data-table > table {
@@ -65,6 +67,11 @@
 
   md-data-table > table tbody tr {
     transition: background var(--md-sys-motion-duration-short2, 100ms) var(--md-sys-motion-easing-standard, cubic-bezier(0.2, 0, 0, 1));
+  }
+
+  // 最后一行不再画底线：外框已经收口，避免与容器边框叠出双线。
+  md-data-table > table tbody tr:last-child > td {
+    border-bottom: 0;
   }
 
   md-data-table > table tbody tr:hover > td {
