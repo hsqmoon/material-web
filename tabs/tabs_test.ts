@@ -108,6 +108,28 @@ describe('<md-tabs>', () => {
       expect(harness.element.activeTab).toBe(first);
     });
 
+    it('keeps the requested index and reports the next click when the list is replaced', async () => {
+      // 宿主整体重渲染子列表（框架换页）且声明序号不变的形态：新列表要按声明序号恢复选中，
+      // 否则会停在"没有任何页签选中"，之后第一次点击被当成自动选中首项而不派发 change。
+      const {harness} = await setupTest({activeTabIndex: 1});
+      const seen: number[] = [];
+      harness.element.addEventListener('change', () => {
+        seen.push(harness.element.activeTabIndex);
+      });
+      harness.element.innerHTML = `
+        <md-primary-tab>D</md-primary-tab>
+        <md-primary-tab>E</md-primary-tab>
+        <md-primary-tab>F</md-primary-tab>`;
+      await env.waitForStability();
+      expect(harness.element.activeTabIndex).toBe(1);
+      expect(harness.element.activeTab?.textContent).toBe('E');
+
+      harness.element.tabs[2].click();
+      await env.waitForStability();
+      expect(harness.element.activeTabIndex).toBe(2);
+      expect(seen).toEqual([2]);
+    });
+
     it('should ignore setting activeTab when tab is not a child', async () => {
       const {harness} = await setupTest();
       const [firstTab] = harness.element.tabs;

@@ -59,6 +59,14 @@ export class Tabs extends LitElement {
   }
 
   /**
+   * The index most recently requested by the host. Kept because the selection
+   * itself lives on the tab children: when the host replaces every child
+   * without changing the requested index (a framework re-rendering a different
+   * list at the same index), the request must still be honoured.
+   */
+  private requestedTabIndex = 0;
+
+  /**
    * The index of the currently selected tab.
    *
    * @export
@@ -68,6 +76,7 @@ export class Tabs extends LitElement {
     return this.tabs.findIndex((tab) => tab.active);
   }
   set activeTabIndex(index: number) {
+    this.requestedTabIndex = index;
     const activateTabAtIndex = () => {
       const tab = this.tabs[index];
       // Ignore out-of-bound indices.
@@ -199,6 +208,10 @@ export class Tabs extends LitElement {
       tab.active = tab === activeTab;
     }
 
+    // Any activation (host request, click or auto-selection) is the selection
+    // the bar currently stands for; a later child-list swap restores it.
+    this.requestedTabIndex = tabs.indexOf(activeTab);
+
     if (previousTab) {
       // Don't dispatch a change event if activating a tab when no previous tabs
       // were selected, such as when md-tabs auto-selects the first tab.
@@ -304,11 +317,34 @@ export class Tabs extends LitElement {
       // If the active tab was removed, auto-select the first one. There should
       // always be a selected tab while the bar has children.
       this.activateTab(firstTab);
+    } else if (!this.activeTab) {
+      // The children may still be upgrading: a host that swaps the whole list in
+      // one render (framework page change) delivers them without the `md-tab`
+      // marker yet, and `slotchange` fires only once. Re-check after they are
+      // recognised, otherwise the bar would keep no selection and swallow the
+      // next click as "auto-select the first tab" without dispatching `change`.
+      void this.restoreRequestedTabAfterUpgrade();
     }
 
     // When children shift, ensure the active tab is visible. For example, if
     // many children are added before the active tab, it'd be pushed off screen.
     // This ensures it stays visible.
+    this.scrollToTab(this.activeTab);
+  }
+
+  /**
+   * Re-applies the host's requested index once a freshly swapped child list has
+   * finished upgrading. Auto-selection does not dispatch `change`: the host keeps
+   * driving the selection through the `active-tab-index` property, and a later
+   * user click then reports through the ordinary `change` event.
+   */
+  private async restoreRequestedTabAfterUpgrade() {
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+    if (this.activeTab || !this.tabs.length) {
+      return;
+    }
+    const requestedTab = this.tabs[this.requestedTabIndex] ?? this.tabs[0];
+    this.activateTab(requestedTab);
     this.scrollToTab(this.activeTab);
   }
 }
