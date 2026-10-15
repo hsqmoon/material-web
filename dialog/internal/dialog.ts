@@ -119,15 +119,15 @@ export class Dialog extends dialogBaseClass {
   @query('.headline') private readonly headline!: HTMLDialogElement | null;
   @query('.content') private readonly content!: HTMLDialogElement | null;
   @query('.actions') private readonly actions!: HTMLDialogElement | null;
-  @state() private isAtScrollTop = false;
-  @state() private isAtScrollBottom = false;
+  @state() private isAtScrollTop = true;
+  @state() private isAtScrollBottom = true;
   @query('.scroller') private readonly scroller!: HTMLElement | null;
-  @query('.top.anchor') private readonly topAnchor!: HTMLElement | null;
-  @query('.bottom.anchor') private readonly bottomAnchor!: HTMLElement | null;
   @query('.focus-trap')
   private readonly firstFocusTrap!: HTMLElement | null;
   private nextClickIsFromContent = false;
-  private intersectionObserver?: IntersectionObserver;
+  /** 观察插槽内容尺寸变化：数据后到的长内容长高后要重新判定溢出。 */
+  private readonly contentResizeObserver = new ResizeObserver(() => this.updateScrollState());
+  private observedContent: Element[] = [];
   // Dialogs should not be SSR'd while open, so we can just use runtime checks.
   @state() private hasHeadline = false;
   @state() private hasActions = false;
@@ -262,6 +262,9 @@ export class Dialog extends dialogBaseClass {
   override disconnectedCallback() {
     super.disconnectedCallback();
     this.isConnectedPromise = this.getIsConnectedPromise();
+    this.contentResizeObserver.disconnect();
+    this.observedContent = [];
+    this.scroller?.removeEventListener('scroll', this.boundScrollState);
   }
 
   protected override render() {
@@ -317,9 +320,7 @@ export class Dialog extends dialogBaseClass {
           </div>
           <div class="scroller">
             <div class="content">
-              <div class="top anchor"></div>
-              <slot name="content"></slot>
-              <div class="bottom anchor"></div>
+              <slot name="content" @slotchange=${this.handleContentChange}></slot>
             </div>
           </div>
           <div class="actions">
@@ -333,17 +334,37 @@ export class Dialog extends dialogBaseClass {
   }
 
   protected override firstUpdated() {
-    this.intersectionObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          this.handleAnchorIntersection(entry);
-        }
-      },
-      {root: this.scroller!},
-    );
+    // 滚动状态按滚动容器的真实溢出与位置判定。原先用内容盒里的"顶/底锚点"是否可见来判断，
+    // 但内容盒在弹性布局里高度等于可视高度（不随内容增长），两个锚点永远可见 ⇒ 长内容既不出现
+    // 滚动条也滚不动（记录详情、日志预览这类弹窗的"滚不了"）。锚点判定已整体替换为实测。
+    this.scroller?.addEventListener('scroll', this.boundScrollState, {passive: true});
+    this.updateScrollState();
+  }
 
-    this.intersectionObserver.observe(this.topAnchor!);
-    this.intersectionObserver.observe(this.bottomAnchor!);
+  private readonly boundScrollState = () => this.updateScrollState();
+
+  /** 内容插槽变化时重新观察新的内容元素，并立刻刷新滚动状态。 */
+  private handleContentChange(event: Event) {
+    for (const element of this.observedContent) {
+      this.contentResizeObserver.unobserve(element);
+    }
+    this.observedContent = (event.target as HTMLSlotElement).assignedElements({flatten: true});
+    for (const element of this.observedContent) {
+      this.contentResizeObserver.observe(element);
+    }
+    this.updateScrollState();
+  }
+
+  private updateScrollState() {
+    const scroller = this.scroller;
+    if (!scroller) {
+      return;
+    }
+    const overflowing = scroller.scrollHeight > scroller.clientHeight + 1;
+    const atTop = scroller.scrollTop <= 1;
+    const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1;
+    this.isAtScrollTop = !overflowing || atTop;
+    this.isAtScrollBottom = !overflowing || atBottom;
   }
 
   private handleDialogClick() {
@@ -492,17 +513,6 @@ export class Dialog extends dialogBaseClass {
   private handleIconChange(event: Event) {
     const slot = event.target as HTMLSlotElement;
     this.hasIcon = slot.assignedElements().length > 0;
-  }
-
-  private handleAnchorIntersection(entry: IntersectionObserverEntry) {
-    const {target, isIntersecting} = entry;
-    if (target === this.topAnchor) {
-      this.isAtScrollTop = isIntersecting;
-    }
-
-    if (target === this.bottomAnchor) {
-      this.isAtScrollBottom = isIntersecting;
-    }
   }
 
   private getIsConnectedPromise() {

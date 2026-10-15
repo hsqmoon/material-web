@@ -198,20 +198,6 @@
     padding: 24px;
   }
 
-  // Anchors are used with an IntersectionObserver to determine when the content
-  // has scrolled.
-  .anchor {
-    position: absolute;
-  }
-
-  .top.anchor {
-    top: 0;
-  }
-
-  .bottom.anchor {
-    bottom: 0;
-  }
-
   .actions {
     position: relative;
   }
