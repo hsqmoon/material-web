@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {CSSResultOrNative, html, LitElement, nothing} from 'lit';
+import {CSSResultOrNative, html, LitElement, nothing, type PropertyValues} from 'lit';
 import {property} from 'lit/decorators.js';
 
 import '../../button/outlined-button.js';
@@ -70,6 +70,14 @@ export class Pager extends LitElement {
   /** jumpField 跳页输入框（避免翻页时覆盖用户正在输入的内容）。 */
   private get jumpField(): Element | null {
     return this.renderRoot.querySelector('.jump-field');
+  }
+
+  protected override updated(changed: PropertyValues<this>): void {
+    if (!changed.has('pageSize') && !changed.has('sizeMode') && !changed.has('auto')) return;
+    // 选项文案变化不会自动刷新 select 的展示值；重选当前值以同步“自动（N 条）”。
+    const select = this.renderRoot.querySelector('md-outlined-select') as
+      (HTMLElement & {select?: (value: string) => void}) | null;
+    select?.select?.(this.normalizedSizeMode);
   }
 
   /** fixedSizeMode 当前固定每页条数；自动模式或非法值返回 null。 */
