@@ -45,6 +45,9 @@ export class Pager extends LitElement {
   /** 每页条数模式：'auto' 或具体条数。 */
   @property({attribute: 'size-mode'}) sizeMode: string | number = 'auto';
 
+  /** 是否提供"自动"选项；固定条数的列表（如大屏设备绑定）需要关闭它。 */
+  @property({type: Boolean}) auto = true;
+
   /** 是否正在读取下一页（翻页期间禁用按钮）。 */
   @property({type: Boolean, attribute: 'loading-more'}) loadingMore = false;
 
@@ -60,13 +63,37 @@ export class Pager extends LitElement {
   private jumpValue = '1';
 
   protected override willUpdate(): void {
-    if (!this.querySelector('.jump-field')) this.jumpValue = String(this.page);
-    else if (document.activeElement !== this.jumpField) this.jumpValue = String(this.page);
+    // 跳页输入框在 shadow root 内，必须按真实焦点判断；否则每次翻页都会覆盖用户正在输入的内容。
+    if (document.activeElement !== this.jumpField) this.jumpValue = String(this.page);
   }
 
   /** jumpField 跳页输入框（避免翻页时覆盖用户正在输入的内容）。 */
   private get jumpField(): Element | null {
     return this.renderRoot.querySelector('.jump-field');
+  }
+
+  /** fixedSizeMode 当前固定每页条数；自动模式或非法值返回 null。 */
+  private get fixedSizeMode(): number | null {
+    if (this.sizeMode === 'auto') return null;
+    const size = Number(this.sizeMode);
+    return Number.isFinite(size) && size > 0 ? Math.trunc(size) : null;
+  }
+
+  /** sizeOptions 每页条数选项：当前固定值不在预设里时也必须补上，否则下拉框没有匹配项会显示空白。 */
+  private get sizeOptions(): number[] {
+    const options = [10, 20, 50, 100];
+    const current = this.fixedSizeMode ??
+      (!this.auto ? Math.max(1, Math.trunc(this.pageSize)) : null);
+    if (current !== null && !options.includes(current)) options.push(current);
+    return options.sort((left, right) => left - right);
+  }
+
+  /** normalizedSizeMode 下拉框的选中值；非法模式按自动处理，避免出现无匹配的空白状态。 */
+  private get normalizedSizeMode(): string {
+    const fixed = this.fixedSizeMode;
+    if (fixed !== null) return String(fixed);
+    if (!this.auto) return String(Math.max(1, Math.trunc(this.pageSize)));
+    return 'auto';
   }
 
   /** pageCount 总页数（至少 1 页）。 */
@@ -95,17 +122,18 @@ export class Pager extends LitElement {
     ];
   }
 
-  /** goTo 请求翻页（越界时钳制到有效范围）。 */
-  private goTo(target: number): void {
+  /** goTo 请求翻页（越界时钳制到有效范围），返回是否真的发起了翻页请求。 */
+  private goTo(target: number): boolean {
     const next = Math.min(this.pageCount, Math.max(1, Math.trunc(target)));
-    if (next === this.page) return;
+    if (next === this.page) return false;
     this.dispatchEvent(new CustomEvent('page-change', {detail: {page: next}}));
+    return true;
   }
 
-  /** jump 处理跳页输入。 */
+  /** jump 处理跳页输入；受控组件不在这里改页码，父级更新 page 后再同步输入框。 */
   private jump(): void {
     const value = Number(this.jumpValue);
-    this.goTo(Number.isFinite(value) ? value : this.page);
+    if (Number.isFinite(value) && this.goTo(value)) return;
     this.jumpValue = String(this.page);
   }
 
@@ -123,12 +151,13 @@ export class Pager extends LitElement {
     return html`<div class="pager" role="navigation" aria-label="表格分页">
       <span class="total">共 ${this.total} 条</span>
       <div class="controls">
-        <md-outlined-select class="size" aria-label="每页条数" .value=${String(this.sizeMode)} @change=${this.changeSize}>
-          <md-select-option value="auto"><div slot="headline">自动（${this.pageSize} 条）</div></md-select-option>
-          <md-select-option value="10"><div slot="headline">10 条/页</div></md-select-option>
-          <md-select-option value="20"><div slot="headline">20 条/页</div></md-select-option>
-          <md-select-option value="50"><div slot="headline">50 条/页</div></md-select-option>
-          <md-select-option value="100"><div slot="headline">100 条/页</div></md-select-option>
+        <md-outlined-select class="size" aria-label="每页条数" .value=${this.normalizedSizeMode} @change=${this.changeSize}>
+          ${this.auto
+            ? html`<md-select-option value="auto"><div slot="headline">自动（${this.pageSize} 条）</div></md-select-option>`
+            : nothing}
+          ${this.sizeOptions.map(size => html`<md-select-option value=${String(size)}>
+            <div slot="headline">${size} 条/页</div>
+          </md-select-option>`)}
         </md-outlined-select>
         <nav class="numbers" aria-label="页码">
           <md-outlined-button class="arrow" aria-label="上一页" title="上一页" ?disabled=${this.page <= 1 || this.loadingMore}

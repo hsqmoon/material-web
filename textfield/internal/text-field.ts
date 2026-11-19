@@ -216,6 +216,15 @@ export abstract class TextField extends textFieldBaseClass {
   @property({type: Number}) maxLength = -1;
 
   /**
+   * 是否隐藏 maxLength 自动生成的“已输入/上限”计数。
+   *
+   * 官方组件在设置 maxlength 后会自动渲染计数行，导致同一表单里带上限的
+   * 字段比普通字段高出 20px；控制台按统一 48px 字段密度排版，需要时用
+   * 该属性保留 maxlength 校验但不撑高字段。
+   */
+  @property({type: Boolean, attribute: 'no-counter'}) noCounter = false;
+
+  /**
    * Defines the most negative value in the range of permitted values.
    *
    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#min
@@ -567,7 +576,7 @@ export abstract class TextField extends textFieldBaseClass {
   private renderField() {
     return staticHtml`<${this.fieldTag}
       class="field"
-      count=${this.value.length}
+      count=${this.noCounter ? -1 : this.value.length}
       ?disabled=${this.disabled}
       ?error=${this.hasError}
       error-text=${this.getErrorText()}
