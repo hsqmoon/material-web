@@ -52,6 +52,34 @@ describe('<md-outlined-select>', () => {
     expect(changed).toBeTrue();
   });
 
+  it('resolves a value set before asynchronously appended options', async () => {
+    const selectEl = document.createElement(
+      'md-outlined-select',
+    ) as MdOutlinedSelect;
+    root.appendChild(selectEl);
+    selectEl.value = 'banana';
+    await selectEl.updateComplete;
+
+    const apple = document.createElement(
+      'md-select-option',
+    ) as MdSelectOption;
+    apple.value = 'apple';
+    apple.textContent = '苹果';
+    const banana = document.createElement(
+      'md-select-option',
+    ) as MdSelectOption;
+    banana.value = 'banana';
+    banana.textContent = '香蕉';
+    selectEl.append(apple, banana);
+
+    await selectEl.updateComplete;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await selectEl.updateComplete;
+
+    expect(selectEl.value).toBe('banana');
+    expect(selectEl.displayText).toBe('香蕉');
+  });
+
   it('typeahead selects an option', async () => {
     let changed = false;
     render(

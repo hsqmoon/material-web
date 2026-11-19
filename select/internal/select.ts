@@ -509,7 +509,42 @@ export abstract class Select extends selectBaseClass {
   }
 
   private renderMenuContent() {
-    return html`<slot></slot>`;
+    return html`<slot @slotchange=${this.handleOptionsChange}></slot>`;
+  }
+
+  /**
+   * Re-resolve the selected option when the option list changes asynchronously.
+   *
+   * Forms often set `.value` before their options arrive from the network. The
+   * initial `select()` finds nothing and used to leave the field permanently
+   * blank because the slotted options never triggered another lookup.
+   */
+  private async handleOptionsChange() {
+    await this.updateComplete;
+
+    /**
+     * Options can arrive before their own headline slots finish assigning.
+     * Recompute the selected display text after the option elements settle;
+     * doing it once on the next task as well covers the slot-assignment pass
+     * that can land just after the menu reports its items.
+     */
+    const settle = async () => {
+      if ((this.getSelectedOptions() ?? []).length) {
+        this.updateValueAndDisplayText();
+      } else {
+        // Prefer the live value after a user selection; fall back to the
+        // programmatic value that was assigned before options existed.
+        const requested = this[VALUE] || this.lastUserSetValue;
+        if (requested) this.select(requested);
+      }
+      this.requestUpdate();
+    };
+
+    await settle();
+    if (!this.displayText && this.options.length) {
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      await settle();
+    }
   }
 
   /**
